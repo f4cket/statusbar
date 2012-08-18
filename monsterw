@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+wm=monsterwm
+ff="/tmp/$RANDOM.monsterwm.fifo"
+
+tags=('null' 'web' 'foo' 'Ø')
+layouts=('T' 'M' 'B' 'G' 'F') 
+
+[[ -p $ff ]] || mkfifo -m 600 "$ff"
+
+function statusbar {
+    # mpd status
+    irssi=$(cat /home/simon/.logs/irssi_pipe)
+    music=$(mpc current)
+    [ -z "$music" ] && music="Stopped"
+
+    echo "\r\f2$irssi | \f4$music\fr \f8| \f9$(date +"%H:%M") "
+}
+
+while read -t 1 -r wmout || true; do
+    if [[ $wmout =~ ^(([[:digit:]]+:)+[[:digit:]]+ ?)+$ ]]; then
+        read -ra desktops <<< "$wmout"
+
+        tmp=
+        for desktop in "${desktops[@]}"; do
+            IFS=':' read -r d w m c u <<< "$desktop"
+            # Tags labels
+            label=${tags[$d]}
+            # Current desktop color and enclosing char (yes/no)
+            ((c)) && fg="0" bg="1" lc="\u6 " rc=" \ur" && layout="\f8"["\f5"${layouts[$m]}"\f8"] || fg="9" bg="0" lc=" " rc=" "
+            # Has windows ?
+            ((w)) && ((! c)) && fg="9" lc="\u5 " rc=" \ur"
+            # Urgent windows ?
+            ((u)) && fg="0" bg="3" lc="\u4 " rc=" \ur"
+
+            tmp+="\f$fg\b$bg$lc$label$rc\fr\br"
+        done
+	
+        tmp+=" $layout"
+    fi
+    echo "$tmp $(statusbar)"
+done < "$ff" | bar &
+
+$wm > "$ff"
+
+rm $ff

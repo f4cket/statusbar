@@ -1,0 +1,35 @@
+#!/bin/sh
+
+xsetroot -cursor_name left_ptr &
+sleep 2 && conky -c ~/.conkySOC | dzen2 -e 'button3=' -p -expand left &>/dev/null &
+sleep 3 && fbpanel &
+
+: "${wm:=monsterwm}"
+: "${ff:="/tmp/${wm}.fifo"}"
+
+[[ -p $ff ]] || mkfifo -m 600 "$ff"
+while read -r; do
+    [[ $REPLY =~ ^(([[:digit:]]+:)+[[:digit:]]+ ?)+$ ]] && read -ra desktops <<< "$REPLY" || continue
+    for desktop in "${desktops[@]}"; do
+        IFS=':' read -r d w m c u <<< "$desktop"
+        case $d in
+            0) d="sys" s="" ;;
+            1) d="web" s="" ;;
+            2) d="doc" s="" ;;
+            3) d="dev" s="" ;;
+            4) d="irc" s="" ;;
+            5) d="foo" s="" ;;
+        esac
+        ((c)) && f="#B3B3B3" && case $m in
+            0) i="^i(/home/simon/.icons/st/tile.xbm)"    ;;
+            1) i="^i(/home/simon/.icons/st/monocle.xbm)" ;;
+            2) i="^i(/home/simon/.icons/st/bstack.xbm)"  ;;
+            3) i="^i(/home/simon/.icons/st/grid.xbm)"    ;;
+        esac || f="#808080"
+		((u)) && f="#B3354C"
+        ((w)) && r+="$s^fg($f)^i(/home/simon/.icons/st/push1.xbm)$d^fg() " || r+="$s^fg($f) $d^fg() "
+    done
+    printf "%s%s\n" "$r" "^fg(#808080)$i" && unset r
+done < "$ff" | dzen2 -ta l -p &
+
+while :; do "$wm" || break; done | tee -a "$ff"

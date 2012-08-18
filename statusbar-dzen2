@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+    cpu=$(eval $(awk '/^cpu /{print "previdle=" $5 "; prevtotal=" $2+$3+$4+$5 }' /proc/stat); sleep 0.4; eval $(awk '/^cpu /{print "idle=" $5 "; total=" $2+$3+$4+$5 }' /proc/stat); intervaltotal=$((total-${prevtotal:-0})); echo "$((100*( (intervaltotal) - ($idle-${previdle:-0}) ) / (intervaltotal) ))")
+    #conky=$(conky -c /home/simon/.conkyrc)
+    #tasks=$(top -b -n 1|awk '/Tasks/ {print $2}')
+    gmail=$(head -n1 .gma1l)
+    amixer=$(amixer get Master|tr -d "\n"|cut -d " " -f26)
+    #    amixer=$(amixer get Master | awk '/Mono: Playback/ {print $4}')
+    host=$(uptime | awk '{print $1" " $2" " $3" " $4}')
+    ip=$(ifconfig tap0 |grep inet | grep -v inet6 |grep -v '127' | awk '{print $2}' |cut -d: -f2)
+    home=$(df -h|awk '/root/ {print "/ " $5}')
+    root=$(df -h|awk '/sdb4/ {print "/home " $5}')
+    wireless=$(wireless_status|tail -n1)
+    mem=$(free -m | awk '/buffers\/cache/ {print $3 MB}')
+    # torrr=$(transmission-remote -l|awk '{print $5 " " $10}' |grep -v Up |grep -v 0.0)
+    torr=$(transmission-remote -l | awk '/%/ {print $2 " "$11 " "$13 " " $14}'|tail -n1)
+    #gcpu=$(gcpubar -bg black -w 30 -h 7 -fg "#D81860"|head -n1)
+    irssi=$(head -n1 /home/simon/.logs/irssi_pipe)
+    music=$(mpc current)
+    [ -z "$music" ] && music="Stopped"
+    date=$(date "+%R")
+    echo "^fg(#7F62B3)^i(/home/simon/.icons/st/mail1.xbm)  ^fg(#505050)$gmail  ^fg(#7F62B3)^i(/home/simon/.icons/st/uparrow1.xbm) ^fg(#4779B3)$host  ^fg(#7F62B3)^i(/home/simon/.icons/st/home1.xbm) ^fg(#454545)$root  ^fg(#7F62B3)^i(/home/simon/.icons/st/file1.xbm) ^fg(#414141)$home  ^fg(#7F62B3)^i(/home/simon/.dzen/icons/half.xbm) ^fg(#454545)$ip  ^fg(#7F62B3)^i(/home/simon/.icons/st/mem4.xbm) ^fg(#D81860)$mem  ^fg(#7F62B3)^i(/home/simon/.icons/st/cpu9.xbm) $cpu  ^fg(#7F62B3)^i(/home/simon/.icons/st/messenger1.xbm) ^fg(#4779B3)$irssi ^fg(#7F62B3)^i(/home/simon/.icons/st/info10.xbm) ^fg(#87afd7)$torr  ^fg(#7F62B3)^i(/home/simon/.icons/st/wireless2.xbm) ^fg(#414141)$wireless  ^fg(#7F62B3)^i(/home/simon/.icons/st/play1.xbm) ^fg(#454545)$music   ^fg(#7F62B3)^i(/home/simon/.dzen/icons/spkr_01.xbm) ^fg(#FEA63C)$amixer  ^fg(#7F62B3)^i(/home/simon/.icons/st/clock1.xbm) ^fg(#d7d7d7)Date $(date +"%H:%M") "
+
